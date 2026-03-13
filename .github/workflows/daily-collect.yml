@@ -1,0 +1,47 @@
+name: Daily Prospect Wire
+
+on:
+  schedule:
+    # 7 AM US Central (UTC-6) = 13:00 UTC
+    - cron: '3 13 * * *'
+  workflow_dispatch: # allows manual trigger from GitHub UI
+
+jobs:
+  run-digest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore data directory
+        uses: actions/cache@v4
+        with:
+          path: data/
+          key: prospect-wire-data-${{ github.run_id }}
+          restore-keys: |
+            prospect-wire-data-
+
+      - name: Run daily collect + weekly publish
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          BEEHIIV_API_KEY: ${{ secrets.BEEHIIV_API_KEY }}
+          BEEHIIV_PUB_ID: ${{ secrets.BEEHIIV_PUB_ID }}
+          CLAUDE_MODEL: claude-sonnet-4-20250514
+          PUBLISH_DAY: sunday
+          LOG_LEVEL: INFO
+        run: python main.py
+
+      - name: Save data directory
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: data/
+          key: prospect-wire-data-${{ github.run_id }}
