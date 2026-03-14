@@ -6,12 +6,18 @@ on:
     - cron: '3 13 * * *'
   workflow_dispatch: # allows manual trigger from GitHub UI
 
+permissions:
+  contents: write
+  pages: write
+
 jobs:
   run-digest:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -32,8 +38,6 @@ jobs:
       - name: Run daily collect + weekly publish
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          BEEHIIV_API_KEY: ${{ secrets.BEEHIIV_API_KEY }}
-          BEEHIIV_PUB_ID: ${{ secrets.BEEHIIV_PUB_ID }}
           SMTP_HOST: smtp.gmail.com
           SMTP_PORT: '587'
           SMTP_USER: ${{ secrets.SMTP_USER }}
@@ -44,6 +48,14 @@ jobs:
           PUBLISH_DAY: sunday
           LOG_LEVEL: INFO
         run: python main.py
+
+      - name: Commit and push RSS feed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/feed.xml
+          git diff --cached --quiet || git commit -m "Update RSS feed - $(date +%Y-%m-%d)"
+          git push
 
       - name: Save data directory
         uses: actions/cache/save@v4

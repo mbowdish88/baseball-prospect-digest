@@ -15,7 +15,7 @@ import config
 from sources import news
 from processing.dedup import DedupDB, WeeklyStore
 from processing.summarizer import create_weekly_digest, build_fallback_digest
-from delivery.beehiiv import publish_to_beehiiv
+from delivery.rss_feed import publish_to_rss
 from delivery.emailer import send_digest
 
 # Set up logging
@@ -100,13 +100,12 @@ def publish_weekly():
         logger.error("Claude API unavailable. Using fallback digest.")
         digest_content = build_fallback_digest(articles)
 
-    # Publish to Beehiiv
+    # Publish to RSS feed (picked up by Beehiiv RSS-to-Send)
     try:
-        result = publish_to_beehiiv(digest_content, len(articles))
-        if result:
-            logger.info(f"Beehiiv: published post {result.get('id', 'unknown')}")
+        feed_path = publish_to_rss(digest_content, len(articles))
+        logger.info(f"RSS feed updated: {feed_path}")
     except Exception as e:
-        logger.error(f"Beehiiv publish failed: {e}", exc_info=True)
+        logger.error(f"RSS feed publish failed: {e}", exc_info=True)
 
     # Send email copy
     try:
