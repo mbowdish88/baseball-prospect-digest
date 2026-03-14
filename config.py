@@ -18,6 +18,14 @@ CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-20250514")
 BEEHIIV_API_KEY = os.getenv("BEEHIIV_API_KEY", "")
 BEEHIIV_PUB_ID = os.getenv("BEEHIIV_PUB_ID", "")
 
+# --- Email SMTP ---
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+EMAIL_FROM = os.getenv("EMAIL_FROM", "")
+EMAIL_TO = [addr.strip() for addr in os.getenv("EMAIL_TO", "").split(",") if addr.strip()]
+
 # --- Agent Settings ---
 NEWS_MAX_RESULTS = int(os.getenv("NEWS_MAX_RESULTS", "40"))
 LOOKBACK_DAYS = int(os.getenv("LOOKBACK_DAYS", "1"))

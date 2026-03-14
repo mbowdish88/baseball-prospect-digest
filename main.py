@@ -16,6 +16,7 @@ from sources import news
 from processing.dedup import DedupDB, WeeklyStore
 from processing.summarizer import create_weekly_digest, build_fallback_digest
 from delivery.beehiiv import publish_to_beehiiv
+from delivery.emailer import send_digest
 
 # Set up logging
 logging.basicConfig(
@@ -106,7 +107,12 @@ def publish_weekly():
             logger.info(f"Beehiiv: published post {result.get('id', 'unknown')}")
     except Exception as e:
         logger.error(f"Beehiiv publish failed: {e}", exc_info=True)
-        return False
+
+    # Send email copy
+    try:
+        send_digest(digest_content, len(articles))
+    except Exception as e:
+        logger.error(f"Email send failed: {e}", exc_info=True)
 
     # Clean up old articles
     store.clear_published(days=7)
